@@ -1,0 +1,4 @@
+- name: install ghostscript
+  apt:
+    name: ghostscript
+    update_cache: yes

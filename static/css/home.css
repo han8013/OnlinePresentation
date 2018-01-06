@@ -1,0 +1,17 @@
+body {
+  background: url(../img/baim-hanif.jpg) no-repeat center fixed;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  background-size: cover;
+  -o-background-size: cover;
+}
+
+.navbar {
+  margin-bottom: 0px;
+}
+
+#navbar a{
+  color: white;
+  font-size: 16px;
+  background-color: transparent;
+}

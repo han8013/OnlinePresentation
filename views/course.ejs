@@ -1,0 +1,154 @@
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="google-signin-client_id"
+          content="42088802485-n1mb2q3d8gigkqoth61ca07nfthgk9hr.apps.googleusercontent.com">
+    <title>ReciLive</title>
+    <!-- CSS Library -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/library/materialize.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.3.0/css/datepicker.css" rel="stylesheet" type="text/css" />
+    <link href="https://dl2.pushbulletusercontent.com/LC5kwexKQ6dwj3oBuK9g7A2sh9fiXBmP/vex.css" rel="stylesheet" type="text/css" />
+    <link href="https://dl2.pushbulletusercontent.com/OdBbCpZPN4HzEvW6s5ZAKOw5j8JoVPea/vex-theme-plain.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" type="text/css" />
+    <!-- JS Library -->
+    <script src="static/javascript/library/jquery-3.2.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
+    <script src="/static/javascript/library/materialize.min.js"></script>
+    <script src="static/javascript/library/bootstrap-datepicker.js"></script>
+    <script src="https://apis.google.com/js/platform.js?onload=onLoad" async defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.3.0/mustache.js"></script>
+    <script src="https://dl2.pushbulletusercontent.com/htm56efiYePFcXUo18L8QYQCA8TX0p92/vex.combined.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.5.1/Sortable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="static/javascript/library/papaparse.min.js"></script>
+    <script>vex.defaultOptions.className = 'vex-theme-plain'</script>
+    <!-- Our CSS -->
+    <link href="static/css/class.css" rel="stylesheet" type="text/css">
+    <!-- Our JS-->
+    <script src="static/javascript/authentication.js"></script>
+    <script src="static/javascript/class.js"></script>
+</head>
+
+<body>
+    <nav class="nav-extended">
+      <div class="nav-wrapper">
+        <img class="brand-logo center" src="../static/img/logo/android-icon-48x48.png">
+        <div class="sign-in" data-onsuccess="onSignIn"></div>
+
+	      <a id="sign-out" onclick="signOut()">
+          <img src="<%= username %>">
+          <div class="logout">LOGOUT</div>
+        </a>
+      </div>
+      <% if(instructor) { %>
+      <div class="nav-content">
+        <a class="btn-floating btn-large halfway-fab waves-effect waves-light teal" href="#class-detail" onclick="initClassModal()">
+          <i class="material-icons">add</i>
+        </a>
+      </div>
+      <% } %>
+    </nav>
+    <section class="class-info">
+        <h2>Class List</h2>
+        <br>
+        <div class="input-field col s6">
+          <i class="material-icons prefix">search</i>
+          <input type="text" class="validate" oninput="searchClass()" id="search-class">
+          <label for="icon_prefix">Search</label>
+        </div>
+    </section>
+    <section>
+        <div class="container-fluid">
+            <div class="row class-list">
+              <% classes.forEach(function(element) { %>
+                <div class="col s6 m3">
+                  <div class="class">
+                    <h4><%= element.name %></h4>
+                    <div class="dropdown-course-content">
+                        <a href="course/<%= element.id %>" onclick="animateClass2Recitation(this)">Go to Recitation Page</a>
+                        <a href="#<%= element.id %>">More</a>
+                    </div>
+                  </div>
+                </div>
+                <div id="<%= element.id %>" class="modal bottom-sheet">
+                    <div class="modal-content class-option">
+                        <a onclick="viewClassInfo('<%= element.id %>')" href="#class-detail"><%= (element.editable)?'Edit':'View' %> <%= element.name %></a>
+                        <% if(element.editable) { %>
+                          <a href="" onclick="deleteClass('<%= element.id %>')">Delete <%= element.name %></a>
+                        <% } %>
+                    </div>
+                </div>
+                <script>
+                    $('#<%= element.id %>').modal({
+                        dismissible: true, // Modal can be dismissed by clicking outside of the modal
+                        opacity: .5, // Opacity of modal background
+                        inDuration: 300, // Transition in duration
+                        outDuration: 200, // Transition out duration
+                        startingTop: '4%', // Starting top style attribute
+                        endingTop: '10%' // Ending top style attribute
+                    });
+                </script>
+              <% }); %>
+            </div>
+        </div>
+    </section>
+    <!-- Modal for class -->
+    <div id="class-detail" class="modal modal-fixed-footer">
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="input-field col s12">
+          <input class="class-name" type="text" class="validate" oninput="validateClassModalInput()">
+          <label>Class Name</label>
+        </div>
+        <div id="class-date-alert">
+            <strong>Oh snap!</strong>
+        </div>
+        <table>
+            <thead>
+            <tr>
+                <th>
+                    Start date
+                    <a href="#!" class="btn" id="class-date-start" data-date-format="yyyy-mm-dd">Change</a>
+                </th>
+                <th>
+                    End date
+                    <a href="#!" class="btn" id="class-date-end" data-date-format="yyyy-mm-dd">Change</a>
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td id="class-date-start-display"></td>
+                <td id="class-date-end-display"></td>
+            </tr>
+            </tbody>
+        </table>
+        <table>
+            <thead>
+            <tr>
+                <th>Student E-mail</th>
+            </tr>
+            </thead>
+            <tbody class="student-list">
+            </tbody>
+        </table>
+      </div>
+      <% if(instructor) { %>
+      <div class="modal-footer">
+          <a href="#!" class="btn save-class" id="save-class" onclick="addClass()" disabled>Save</a>
+          <label class="btn tooltipped" data-position="bottom"
+                 data-tooltip="Please upload a file containing a list of email. One email per line. ">
+              Bulk Import Students
+              <input type="file" class="bulk-import-student" style="display: none;" onchange="import_student()">
+          </label>
+          <button type="button" class="btn" onclick="add_student()">Add</button>
+      </div>
+      <% } %>
+    </div>
+    <!-- End Modal for class -->
+</body>
+
+</html>

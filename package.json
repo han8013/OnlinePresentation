@@ -1,0 +1,29 @@
+{
+  "name": "recilive",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node ./app.js"
+  },
+  "dependencies": {
+    "better-validator": "latest",
+    "body-parser": "1.17.1",
+    "busboy": "^0.2.14",
+    "cookie": "0.3.1",
+    "cookie-parser": "1.4.3",
+    "ejs": "2.5.6",
+    "express": "4.15.2",
+    "google-auth-library": "0.10.0",
+    "helmet": "latest",
+    "mongo-escape": "^2.0.6",
+    "mongodb": "2.2.24",
+    "randomstring": "^1.1.5",
+    "request": "^2.81.0",
+    "when": "3.7.8",
+    "ws": "2.2.1",
+    "rimraf":"2.6.1"
+  },
+  "devDependencies": {
+    "redbird": "^0.6.15"
+  }
+}

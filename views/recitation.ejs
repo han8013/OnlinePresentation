@@ -1,0 +1,178 @@
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="google-signin-client_id"
+          content="42088802485-n1mb2q3d8gigkqoth61ca07nfthgk9hr.apps.googleusercontent.com">
+    <title>ReciLive</title>
+    <!-- CSS Library -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/library/materialize.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.3.0/css/datepicker.css" rel="stylesheet"
+          type="text/css"/>
+    <link href="https://dl2.pushbulletusercontent.com/LC5kwexKQ6dwj3oBuK9g7A2sh9fiXBmP/vex.css" rel="stylesheet"
+          type="text/css"/>
+    <link href="https://dl2.pushbulletusercontent.com/OdBbCpZPN4HzEvW6s5ZAKOw5j8JoVPea/vex-theme-plain.css"
+          rel="stylesheet" type="text/css"/>
+    <!-- JS Library -->
+    <script src="/static/javascript/library/jquery-3.2.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
+    <script src="/static/javascript/library/materialize.min.js"></script>
+    <script src="/static/javascript/library/bootstrap-datepicker.js"></script>
+    <script src="https://apis.google.com/js/platform.js?onload=onLoad" async defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.3.0/mustache.js"></script>
+    <script src="https://dl2.pushbulletusercontent.com/htm56efiYePFcXUo18L8QYQCA8TX0p92/vex.combined.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.5.1/Sortable.min.js"></script>
+    <script>vex.defaultOptions.className = 'vex-theme-plain'</script>
+    <!-- Our CSS -->
+    <link href="/static/css/class.css" rel="stylesheet" type="text/css">
+    <!-- Our JS-->
+    <script src="/static/javascript/authentication.js"></script>
+    <script src="/static/javascript/recitation.js"></script>
+</head>
+
+<body>
+<nav class="nav-extended">
+    <div class="nav-wrapper">
+        <img class="brand-logo center" src="../static/img/logo/android-icon-48x48.png">
+        <div class="sign-in" data-onsuccess="onSignIn"></div>
+        <a id="sign-out" onclick="signOut()">
+            <img src="<%= username %>">
+            <div class="logout">LOGOUT</div>
+        </a>
+    </div>
+    <% if(instructor) { %>
+    <div class="nav-content">
+        <a class="btn-floating btn-large halfway-fab waves-effect waves-light teal" href="#recitation-detail"
+           onclick="initRecModal('<%= classId %>')">
+            <i class="material-icons">add</i>
+        </a>
+    </div>
+    <% } %>
+</nav>
+<!-- Modal for Recitation -->
+<div id="recitation-detail" class="modal">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="input-field col s12">
+                <input class="recitation-name" type="text" class="validate" oninput="validateRecitationModalInput()">
+                <label>Recitation Name</label>
+            </div>
+            <div id="rec-date-alert">
+                <strong>Oh snap!</strong>
+            </div>
+            <table>
+                <!--<thead>-->
+                <!--<tr>-->
+                    <!--<th>-->
+                        <!--Start date-->
+                        <!--<a href="#!" class="btn" id="rec-date-start" data-date-format="yyyy-mm-dd">Change</a>-->
+                    <!--</th>-->
+                    <!--<th>-->
+                        <!--End date-->
+                        <!--<a href="#!" class="btn" id="rec-date-end" data-date-format="yyyy-mm-dd">Change</a>-->
+                    <!--</th>-->
+                <!--</tr>-->
+                <!--</thead>-->
+                <tbody>
+                <tr>
+                    <td id="rec-date-start-display"></td>
+                    <td id="rec-date-end-display"></td>
+                </tr>
+                </tbody>
+            </table>
+            <% if(instructor) { %>
+            <div class="modal-footer">
+                <button type="button" class="btn save-recitaiton" id="save-recitation" onclick="addRecitation()">Save</button>
+            </div>
+            <% } %>
+        </div>
+    </div>
+</div>
+<!-- End Modal for Recitation -->
+<section class="class-info">
+    <h2>Class Name: <span id="class-Name" onclick="goBack()"><%= className %><i class="material-icons back2class">keyboard_arrow_left</i></span>
+    </h2>
+    <h2>Recitation List</h2>
+    <br>
+    <div class="input-field col s6">
+        <i class="material-icons prefix">search</i>
+        <input type="text" class="validate" oninput="searchRec()" id="search-rec">
+        <label for="icon_prefix">Search</label>
+    </div>
+</section>
+<section>
+    <div class="container-fluid">
+        <div class="row class-list">
+            <% recitations.forEach(function(recitation) { %>
+            <div class="col s6 m3">
+                <div class="recitation <%if(recitation.lightColor){ %> lighter-recitation <% } %>">
+                    <h4><%= recitation.name %><%= recitation.nameAppend %></h4>
+                    <div class="dropdown-course-content">
+                        <a target="_blank" href="https://room.recilive.stream/room/<%= recitation.roomid %>">Go to Recitation Room</a>
+                        <a href="#<%= recitation.mongoid %>">More</a>
+                    </div>
+                </div>
+            </div>
+            <div id="<%= recitation.mongoid %>" class="modal bottom-sheet">
+                <div class="modal-content recitation-option">
+                    <a onclick="viewRecitationInfo('<%= recitation.mongoid %>','<%= classId %>')"
+                       href="#recitation-detail">View <%= recitation.name %></a>
+                    <% if(instructor) { %>
+                    <a href="#"
+                       onclick="deleteRecitation('<%= recitation.mongoid %>','<%= classId %>')">Delete <%= recitation.name %></a>
+                    <a onclick="showResourcesEdit('<%= recitation.mongoid %>')">Resources</a>
+                    <% } %>
+                </div>
+            </div>
+            <script>
+                $('#<%= recitation.mongoid %>').modal({
+                    dismissible: true, // Modal can be dismissed by clicking outside of the modal
+                    opacity: .5, // Opacity of modal background
+                    inDuration: 300, // Transition in duration
+                    outDuration: 200, // Transition out duration
+                    startingTop: '4%', // Starting top style attribute
+                    endingTop: '10%' // Ending top style attribute
+                });
+            </script>
+            <% }); %>
+        </div>
+    </div>
+</section>
+
+<!-- resources management item prototype -->
+<div class="item-prototype" style="display: none;">
+    <div class="list-group-item" data-id="">
+        <span class="badge removal">✖</span>
+        <span class="material-icons move-file"><i>swap_vert</i></span>
+        <span class="item-name"></span>
+    </div>
+</div>
+
+<!-- resources management modal -->
+<div class="modal resources-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <h4>Slides</h4>
+            <div class="slides-workarea">
+                <div class="row slide-container">
+                    <div class="col s12">
+                        <ul id="tabs-swipe-demo" class="tabs">
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-info upload-button">Upload</button>
+                <button type="button" class="btn btn-default modal-action modal-close">Close</button>
+                <button type="button" class="btn add-slide" onclick="addSlide()">Add Slide</button>
+                <button type="button" class="btn btn-primary submit-button" id="save-slides">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/static/javascript/recitation_support.js"></script>
+</body>
+</html>

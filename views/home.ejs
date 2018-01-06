@@ -1,0 +1,43 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="google-signin-client_id"
+          content="42088802485-n1mb2q3d8gigkqoth61ca07nfthgk9hr.apps.googleusercontent.com">
+    <title>ReciLive</title>
+    <!-- Libraries CSS-->
+    <link href="static/css/library/bootstrap.min.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/animate.css/3.2.0/animate.min.css">
+    <link href="/static/css/library/vex.css" rel="stylesheet" type="text/css">
+    <link href="/static/css/library/vex-theme-default.css" rel="stylesheet" type="text/css">
+
+    <!-- Our CSS-->
+    <link href="static/css/home.css" rel="stylesheet" type="text/css">
+
+    <!-- Libraries JS-->
+    <script src="static/javascript/library/jquery-3.2.0.min.js"></script>
+    <script src="static/javascript/library/bootstrap.min.js"></script>
+    <script src="static/javascript/library/animatedModal.min.js"></script>
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <script src="/static/javascript/vex.combined.min.js"></script>
+    <script>vex.defaultOptions.className = 'vex-theme-default'</script>
+
+    <!-- Our JS-->
+    <script src="static/javascript/authentication.js"></script>
+</head>
+<body>
+<nav class="navbar" id="navbar">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <img src="static/img/logo/android-icon-48x48.png" >
+        </div>
+        <ul class="nav navbar-nav navbar-right">
+            <li><div class="sign-in g-signin2" data-onsuccess="onSignIn" data-prompt="select_account"></div></li>
+            <!-- <li><a href="#" id="sign-out" onclick="signOut()">Log out</a></li> -->
+        </ul>
+    </div>
+</nav>
+<section>
+</section>
+</body>
+</html>

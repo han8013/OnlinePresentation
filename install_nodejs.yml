@@ -1,0 +1,11 @@
+- name: download nodejs apt repository install script
+  get_url:
+    url: http://deb.nodesource.com/setup_6.x
+    dest: /tmp/nodejs_setup.sh
+    mode: 0744
+- name: run nodejs apt repository install script
+  command: sh /tmp/nodejs_setup.sh
+- name: install nodejs
+  apt:
+    name: nodejs
+    update_cache: yes

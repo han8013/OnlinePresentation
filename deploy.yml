@@ -1,0 +1,262 @@
+---
+- hosts: recilive_live
+  serial: 1
+  become: yes
+  become_method: sudo
+  vars:
+    project_name: cse308.recilive.live
+    http_port: 80
+    DB_PORT: 3434
+    systemd_config_nodejs_live_name: nodejs_live_server_for_{{project_name}}.service
+    systemd_config_mongodb_name: mongodb_server_for_{{project_name}}.service
+    systemd_config_nodejs_live: |
+        [Unit]
+        Description=nodejs live server for {{project_name}}
+        Requires={{systemd_config_mongodb_name}}
+
+        [Service]
+        User=root
+        Group=root
+        WorkingDirectory=/var/node/{{project_name}}/
+        Environment=HTTP_PORT={{http_port}}
+        Environment=DB_PATH=mongodb://localhost:{{DB_PORT}}/
+        Environment=HTTPS_PORT=443
+        Environment=HTTPS_KEY_PATH=/etc/letsencrypt/live/room.recilive.stream/privkey.pem
+        Environment=HTTPS_CERT_PATH=/etc/letsencrypt/live/room.recilive.stream/fullchain.pem
+        Environment=NODE_ENV=production
+        Environment=GOOGLE_LOGIN_CLIENT_ID=42088802485-n1mb2q3d8gigkqoth61ca07nfthgk9hr.apps.googleusercontent.com
+        Environment=ROLE=live
+        ExecStart=/usr/bin/node app.js
+
+        [Install]
+        WantedBy=multi-user.target
+    systemd_config_mongodb: |
+        [Unit]
+        Description=mongodb server for {{project_name}}
+
+        [Service]
+        User=root
+        Group=root
+        ExecStart=/usr/bin/mongod --bind_ip 127.0.0.1 --dbpath /var/mongodb/{{project_name}} --port {{DB_PORT}}
+
+        [Install]
+        WantedBy=multi-user.target
+  
+  gather_facts: no
+#  pre_tasks:
+#  - name: install python
+#    raw: sudo apt-get update && sudo apt-get -y install python-simplejson
+
+  tasks:
+#  - name: ensure git is installed
+#    apt:
+#      name: git
+#      update_cache: yes
+  - name: ensure systemd is installed
+    apt:
+      name: systemd
+  
+  - name: check nodejs
+    shell: dpkg-query -W 'nodejs'
+    ignore_errors: True
+    register: has_nodejs
+  - include: install_nodejs.yml
+    when: has_nodejs|failed
+
+  - name: check mongodb server
+    shell: dpkg-query -W 'mongodb-org-server'
+    ignore_errors: True
+    register: has_mongodb_server
+  - include: install_mongodb_server.yml
+    when: has_mongodb_server|failed
+  
+  - name: create folder for website resources
+    file: 
+      path: /var/node/{{project_name}}/
+      state: directory
+      recurse: yes
+  - name: archive all file in git
+    local_action: shell git archive HEAD > archive.tar.gz
+    become: false
+  - name: unarchive files
+    unarchive:
+      src: archive.tar.gz
+      dest: /var/node/{{project_name}}/
+      
+  - name: create folder for mongodb
+    file:
+      path: /var/mongodb/{{project_name}}
+      state: directory
+  
+  - name: write systemd config to auto run nodejs
+    copy:
+      content: "{{ systemd_config_nodejs_live }}"
+      dest: /etc/systemd/system/{{ systemd_config_nodejs_live_name }}
+      
+  - name: enable nodejs service
+    command: systemctl enable {{systemd_config_nodejs_live_name}}
+
+  - name: enable nodejs service
+    command: systemctl stop {{systemd_config_nodejs_live_name}}
+  
+  - name: write systemd config to auto run mongodb
+    copy:
+      content: "{{ systemd_config_mongodb }}"
+      dest: /etc/systemd/system/{{ systemd_config_mongodb_name }}
+      
+  - name: enable mongodb service
+    command: systemctl enable {{systemd_config_mongodb_name}}
+  
+  - name: start the nodejs service
+    command: systemctl restart {{systemd_config_nodejs_live_name}}
+  
+  - name: pause 5 seconds
+    pause:
+      seconds: 5
+      
+  
+  - name: get nodejs status
+    command: systemctl status {{systemd_config_nodejs_live_name}} -n30
+    register: node_status
+  - debug: msg="{{ node_status.stdout }}"
+  - debug: msg="{{ node_status.stderr }}"
+
+
+
+
+
+
+
+
+
+
+
+
+- hosts: recilive_support
+  serial: 1
+  become: yes
+  become_method: sudo
+  vars:
+    project_name: cse308.recilive.support
+    http_port: 80
+    DB_PORT: 3434
+    systemd_config_nodejs_support_name: nodejs_support_server_for_{{project_name}}.service
+    systemd_config_mongodb_name: mongodb_server_for_{{project_name}}.service
+    systemd_config_nodejs_support: |
+        [Unit]
+        Description=nodejs support server for {{project_name}}
+        Requires={{systemd_config_mongodb_name}}
+
+        [Service]
+        User=root
+        Group=root
+        WorkingDirectory=/var/node/{{project_name}}/
+        Environment=HTTP_PORT={{http_port}}
+        Environment=DB_PATH=mongodb://localhost:{{DB_PORT}}/
+        Environment=HTTPS_PORT=443
+        Environment=HTTPS_KEY_PATH=/etc/letsencrypt/live/recilive.stream/privkey.pem
+        Environment=HTTPS_CERT_PATH=/etc/letsencrypt/live/recilive.stream/fullchain.pem
+        Environment=NODE_ENV=production
+        Environment=GOOGLE_LOGIN_CLIENT_ID=42088802485-n1mb2q3d8gigkqoth61ca07nfthgk9hr.apps.googleusercontent.com
+        Environment=ROLE=support
+        ExecStart=/usr/bin/node app.js
+
+        [Install]
+        WantedBy=multi-user.target
+    systemd_config_mongodb: |
+        [Unit]
+        Description=mongodb server for {{project_name}}
+
+        [Service]
+        User=root
+        Group=root
+        ExecStart=/usr/bin/mongod --bind_ip 127.0.0.1 --dbpath /var/mongodb/{{project_name}} --port {{DB_PORT}}
+
+        [Install]
+        WantedBy=multi-user.target
+
+  gather_facts: no
+#  pre_tasks:
+#  - name: install python
+#    raw: sudo apt-get update && sudo apt-get -y install python-simplejson
+
+  tasks:
+#  - name: ensure git is installed
+#    apt:
+#      name: git
+#      update_cache: yes
+  - name: ensure systemd is installed
+    apt:
+      name: systemd
+
+  - name: check nodejs
+    shell: dpkg-query -W 'nodejs'
+    ignore_errors: True
+    register: has_nodejs
+  - include: install_nodejs.yml
+    when: has_nodejs|failed
+
+  - name: check ghost script
+    shell: dpkg-query -W 'gs'
+    ignore_errors: True
+    register: has_gs
+  - include: install_gs.yml
+    when: has_gs|failed
+
+  - name: check mongodb server
+    shell: dpkg-query -W 'mongodb-org-server'
+    ignore_errors: True
+    register: has_mongodb_server
+  - include: install_mongodb_server.yml
+    when: has_mongodb_server|failed
+
+  - name: create folder for website resources
+    file:
+      path: /var/node/{{project_name}}/
+      state: directory
+      recurse: yes
+  - name: archive all file in git
+    local_action: shell git archive HEAD > archive.tar.gz
+    become: false
+  - name: unarchive files
+    unarchive:
+      src: archive.tar.gz
+      dest: /var/node/{{project_name}}/
+
+  - name: create folder for mongodb
+    file:
+      path: /var/mongodb/{{project_name}}
+      state: directory
+
+  - name: write systemd config to auto run nodejs
+    copy:
+      content: "{{ systemd_config_nodejs_support }}"
+      dest: /etc/systemd/system/{{ systemd_config_nodejs_support_name }}
+
+  - name: enable nodejs service
+    command: systemctl enable {{systemd_config_nodejs_support_name}}
+
+  - name: enable nodejs service
+    command: systemctl stop {{systemd_config_nodejs_support_name}}
+
+  - name: write systemd config to auto run mongodb
+    copy:
+      content: "{{ systemd_config_mongodb }}"
+      dest: /etc/systemd/system/{{ systemd_config_mongodb_name }}
+
+  - name: enable mongodb service
+    command: systemctl enable {{systemd_config_mongodb_name}}
+
+  - name: start the nodejs service
+    command: systemctl restart {{systemd_config_nodejs_support_name}}
+
+  - name: pause 5 seconds
+    pause:
+      seconds: 5
+
+
+  - name: get nodejs status
+    command: systemctl status {{systemd_config_nodejs_support_name}} -n30
+    register: node_status
+  - debug: msg="{{ node_status.stdout }}"
+  - debug: msg="{{ node_status.stderr }}"
